@@ -1,0 +1,8 @@
+prefix=/data/lzq/gazebo_rl_gym_ws/install
+
+Name: gazebo_rl_gym
+Description: Description of gazebo_rl_gym
+Version: 0.0.1
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

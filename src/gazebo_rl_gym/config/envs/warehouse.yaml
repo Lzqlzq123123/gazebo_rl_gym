@@ -1,0 +1,51 @@
+# Default multi-robot training scenario in the warehouse world
+name: warehouse_navigation
+world: /data/lzq/gazebo_rl_gym_ws/src/gazebo_rl_gym/worlds/warehouse.world
+metadata:
+  description: Two TurtleBot3 Waffle robots navigating the warehouse world.
+  topic_timeout: 2.0
+
+observation:
+  normalize_scan: true
+
+robots:
+  - name: turtle1
+    preset: turtlebot3_waffle
+    pose:
+      x: -1.0
+      y: 0.0
+      z: 0.0
+      yaw: 0.0
+    task:
+      target_pos: [1, 0, 0.0]     # 目标点世界坐标
+      success_radius: 0.3       # 终点判定半径
+  # - name: turtle2
+  #   preset: turtlebot3_waffle
+  #   pose:
+  #     x: 2.0
+  #     y: 0.0
+  #     z: 0.1
+  #     yaw: 3.14
+  # - name: nanocar1
+  #   preset: nanocar
+  #   pose:
+  #     x: -1.0
+  #     y: 1.0
+  #     z: 0.1
+  #     yaw: 3.14
+
+reward:
+  type: displacement
+  distance_scale: 1.0          # 鼓励移动（正值）
+  smoothness_scale: -0.01      # 惩罚动作不平滑（负值）
+  collision_penalty: -10.0     # 碰撞惩罚（负值）
+  min_range_penalty: -2.0      # 靠障碍太近惩罚（负值）
+  min_range_threshold: 0.35     # lidar小于该距离开始惩罚
+  goal_reward: 20.0            # 到终点一次性奖励（正值）
+  dist_reward_scale: 1.0       # 距离缩短奖励系数（正值）
+  step_cost: -0.01              # 每步负奖励（负值）
+reward_debug: false            # 打印 reward 分解用于调试
+termination:                  # 终止条件
+  min_height: -1.0
+  collision: true         
+  min_collision_range: 0.25  # 碰撞判定阈值（单位：米）

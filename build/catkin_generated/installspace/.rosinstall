@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /data/lzq/gazebo_rl_gym_ws/install/setup.sh
