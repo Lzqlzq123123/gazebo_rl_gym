@@ -7,9 +7,9 @@ env_cfg: src/gazebo_rl_gym/config/envs/warehouse.yaml
 # Runner settings
 # 每个 env 采样 num_steps_per_env 步（rollout 长度），更新时步数 = num_steps_per_env * num_envs
 num_steps_per_env: 2048
-save_interval: 10
+save_interval: 7
 logger: tensorboard
-num_iterations: 50  # 总训练迭代次数
+num_iterations: 56  # 总训练迭代次数
 
 # PPO algorithm configuration (mirrors rsl_rl style)
 algorithm:

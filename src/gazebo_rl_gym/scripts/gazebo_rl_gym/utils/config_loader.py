@@ -100,6 +100,7 @@ def _build_robot_overrides(entry: Dict[str, Any], global_reward: Dict[str, Any] 
 
     if "task" in entry:
         overrides["task"] = entry["task"]
+        print(f"Debug - Adding task from entry: {entry['task']}")
         
     # Add global reward_debug
     overrides["reward_debug"] = global_reward_debug
@@ -130,7 +131,9 @@ def load_environment_config(path: str) -> EnvironmentConfig:
         if "name" not in entry:
             raise ValueError("Robot entry must define a 'name'")
 
+        print(f"Debug - Processing robot entry: {entry}")
         overrides = _build_robot_overrides(entry, global_reward, global_termination, global_observation, global_reward_debug)
+        print(f"Debug - Robot overrides: {overrides}")
         # Create robot specification from registry with RobotCfg
         spec = robot_registry.create(entry["preset"], entry["name"], overrides=overrides)
         robots.append(

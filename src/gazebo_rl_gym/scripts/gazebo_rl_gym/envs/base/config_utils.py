@@ -27,3 +27,6 @@ def update_config_from_dict(cfg, overrides):
                 update_config_from_dict(attr, value)
             else:
                 setattr(cfg, key, value)
+    
+    # Debug: Print final configuration
+    print(f"Debug - Final configuration after update: {cfg}")

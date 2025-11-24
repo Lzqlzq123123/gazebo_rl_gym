@@ -29,9 +29,9 @@ class RobotCfg(BaseConfig):
     class action_space:
         """动作空间配置。"""
         # 动作下限 [线速度, 角速度]
-        low: List[float] = [-0.26, -1.82]
+        low: List[float] = [0, 0]
         # 动作上限 [线速度, 角速度]
-        high: List[float] = [0.26, 1.82]
+        high: List[float] = [0, 0]
 
     # 注：observation, reward 和 termination 配置应在 YAML 中定义
 

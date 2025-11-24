@@ -27,12 +27,23 @@ class Turtlebot3Spec(RobotEnvSpec):
         # 目标点导航相关配置
         task_cfg = cfg.task
         target = task_cfg.target_pos
+        
+        # 打印调试信息
+        print(f"Debug - task_cfg: {task_cfg}")
+        print(f"Debug - target_pos from config: {target}")
+        print(f"Debug - cfg attributes: {dir(cfg)}")
+        if hasattr(cfg, 'task'):
+            print(f"Debug - cfg.task type: {type(cfg.task)}")
+            print(f"Debug - cfg.task attributes: {dir(cfg.task)}")
     
         self.target_x = float(target[0])
         self.target_y = float(target[1])
         self.target_yaw = float(target[2])
         self.success_radius = float(getattr(task_cfg, "success_radius", 0.3))
         print(f"Target position: x={self.target_x}, y={self.target_y}, yaw={self.target_yaw}")
+        print("action space:",self.action_low, self.action_high)
+        print("observation dim:", self.observation_dim)
+        print("success radius:", self.success_radius)
 
         # 上一帧与目标距离，用于距离缩短奖励与终点判定
         self._prev_dist: Optional[float] = None

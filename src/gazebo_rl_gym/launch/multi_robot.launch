@@ -4,7 +4,7 @@
     <!-- Gazebo world -->
     <arg name="world_file" default="$(find gazebo_rl_gym)/worlds/empty.world"/>
     <arg name="paused" default="false"/>
-    <arg name="gui" default="true"/>
+    <arg name="gui" default="false"/>
     <arg name="headless" default="false"/>
     <arg name="debug" default="false"/>
 

@@ -23,10 +23,12 @@ class RobotRegistry:
     def create(self, preset_name: str, robot_name: str, overrides: dict | None = None) -> RobotEnvSpec:
         spec_cls, cfg_cls = self.get(preset_name)
         cfg = cfg_cls()
+        print(f"Debug - Initial cfg for {preset_name}: {cfg}")
         if overrides:
             from .base.config_utils import update_config_from_dict
-
+            print(f"Debug - Applying overrides to {preset_name}: {overrides}")
             update_config_from_dict(cfg, overrides)
+            print(f"Debug - Final cfg after overrides for {preset_name}: {cfg}")
         return spec_cls(robot_name, cfg)
 
 

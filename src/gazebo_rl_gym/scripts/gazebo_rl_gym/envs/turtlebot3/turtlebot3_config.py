@@ -6,5 +6,5 @@ class Turtlebot3Cfg(RobotCfg):
     controller_type = "velocity_controllers/JointVelocityController"
 
     class action_space(RobotCfg.action_space):
-        low = [-0.26, -1.82]
-        high = [0.26, 1.82]
+        low = [-0.5, -1]
+        high = [1, 1.82]
