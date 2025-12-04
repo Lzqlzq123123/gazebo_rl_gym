@@ -1,7 +1,0 @@
-set(gazebo_rl_gym_SETUP_PY_SETUP_MODULE "distutils.core")
-set(gazebo_rl_gym_SETUP_PY_VERSION "0.0.1")
-set(gazebo_rl_gym_SETUP_PY_SCRIPTS "")
-set(gazebo_rl_gym_SETUP_PY_PACKAGES "gazebo_rl_gym")
-set(gazebo_rl_gym_SETUP_PY_PACKAGE_DIRS "scripts/gazebo_rl_gym")
-set(gazebo_rl_gym_SETUP_PY_MODULES "")
-set(gazebo_rl_gym_SETUP_PY_MODULE_DIRS "")

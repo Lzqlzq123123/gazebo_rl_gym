@@ -1,2 +1,0 @@
-gazebo_rl_gym
--DCATKIN_DEVEL_PREFIX=/data/lzq/gazebo_rl_gym_ws/devel -DCMAKE_INSTALL_PREFIX=/data/lzq/gazebo_rl_gym_ws/install -G Unix Makefiles

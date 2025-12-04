@@ -1,0 +1,42 @@
+# Training configuration for single Forklift in warehouse world
+name: warehouse_ppo_forklift
+
+# Path to environment (world + robot) config
+env_cfg: src/gazebo_rl_gym/config/envs/forklift_warehouse.yaml
+
+# Runner settings
+# 每个 env 采样 num_steps_per_env 步（rollout 长度），更新时步数 = num_steps_per_env * num_envs
+num_steps_per_env: 2048
+save_interval: 10
+logger: tensorboard
+num_iterations: 80  # 总训练迭代次
+
+# PPO algorithm configuration (mirrors rsl_rl style)
+algorithm:
+  class_name: PPO
+  gamma: 0.99
+  learning_rate: 3.0e-4
+  num_learning_epochs: 5  # 每个 iteration 上 PPO epoch 数
+  num_mini_batches: 4
+  clip_param: 0.2
+  value_loss_coef: 1.0
+  entropy_coef: 0.0
+  max_grad_norm: 1.0
+  use_clipped_value_loss: true
+  rnd_cfg: null
+  symmetry_cfg: null
+
+# Policy network configuration
+policy:
+  class_name: ActorCritic
+  actor_hidden_dims: [64, 64]
+  critic_hidden_dims: [64, 64]
+  activation: elu
+  init_noise_std: 0.6
+  actor_obs_normalization: true       # 演员网络的观测归一化
+  critic_obs_normalization: true      # 评论家网络的观测归一化
+
+# Observation groups used by rsl_rl to route obs to actor/critic
+obs_groups:
+  actor: ["policy"]
+  critic: ["critic"]

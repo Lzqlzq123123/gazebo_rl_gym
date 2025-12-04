@@ -39,19 +39,32 @@ class Turtlebot3Spec(RobotEnvSpec):
         self.target_x = float(target[0])
         self.target_y = float(target[1])
         self.target_yaw = float(target[2])
-        self.success_radius = float(getattr(task_cfg, "success_radius", 0.3))
         print(f"Target position: x={self.target_x}, y={self.target_y}, yaw={self.target_yaw}")
         print("action space:",self.action_low, self.action_high)
         print("observation dim:", self.observation_dim)
-        print("success radius:", self.success_radius)
 
         # 上一帧与目标距离，用于距离缩短奖励与终点判定
         self._prev_dist: Optional[float] = None
+
+        # 当前步缓存：用于奖励与严格终止判定
+        self._curr_dist: Optional[float] = None
+        self._curr_yaw_err_to_target: Optional[float] = None
+        self._curr_vx: Optional[float] = None
+        self._curr_wz: Optional[float] = None
+
+        # 连续满足成功条件的计数器
+        self._success_counter: int = 0
 
     def reset(self) -> None:
         super().reset()
         self._current_height = 0.0
         self._last_scan_min_value = None
+        self._prev_dist = None
+        self._curr_dist = None
+        self._curr_yaw_err_to_target = None
+        self._curr_vx = None
+        self._curr_wz = None
+        self._success_counter = 0
 
     @property
     def observation_dim(self) -> int:
@@ -60,8 +73,11 @@ class Turtlebot3Spec(RobotEnvSpec):
         """
         # 基础观测：位姿 + 激光
         base_dim = len(self.POSE_KEYS) + self.SCAN_DIM
-        # 额外添加 2 维：与目标点的距离 + 目标在机器人坐标系中的角度
-        return base_dim + 2
+        # 额外添加 3 维：
+        #   1) 与目标点的距离
+        #   2) 目标在机器人坐标系中的角度（导航用）
+        #   3) 机器人朝向与目标期望 yaw 的误差（精确位姿用）
+        return base_dim + 3
 
     @property
     def uses_scan(self) -> bool:
@@ -119,7 +135,17 @@ class Turtlebot3Spec(RobotEnvSpec):
         target_angle = (target_angle + np.pi) % (2 * np.pi) - np.pi
         target_angle = target_angle.astype(np.float32)
 
-        extra = np.array([dist, target_angle], dtype=np.float32)
+        # 机器人当前朝向与目标期望 yaw 的误差（[-pi, pi]）
+        yaw_err_to_target_yaw = self.target_yaw - yaw
+        yaw_err_to_target_yaw = (yaw_err_to_target_yaw + np.pi) % (2 * np.pi) - np.pi
+
+        # 缓存当前步信息，供 reward / is_done 使用
+        self._curr_dist = float(dist)
+        self._curr_yaw_err_to_target = float(yaw_err_to_target_yaw)
+        self._curr_vx = float(pose_msg.twist.twist.linear.x)
+        self._curr_wz = float(pose_msg.twist.twist.angular.z)
+
+        extra = np.array([dist, target_angle, yaw_err_to_target_yaw], dtype=np.float32)
 
         parts = [vec for vec in (pose_vec, scan, extra) if vec.size]
         return np.concatenate(parts)
@@ -178,7 +204,7 @@ class Turtlebot3Spec(RobotEnvSpec):
         
         # ★ 新增：方向惩罚项（可选），防止不必要的旋转
         # 如果启用，会惩罚与目标方向不一致的机器人朝向
-        heading_penalty_scale = float(getattr(self.cfg.reward, "heading_penalty_scale", 0.0))
+        heading_penalty_scale = float(getattr(self.cfg.reward, "heading_penalty_scale"))
         heading_penalty_value = 0.0
         if heading_penalty_scale != 0.0:
             # 目标方向（从当前位置指向目标）
@@ -244,13 +270,49 @@ class Turtlebot3Spec(RobotEnvSpec):
         reward_parts["distance_shortening"] = distance_shortening_reward
         self._prev_dist = dist
 
-        # 到达终点的一次性奖励
+        # 到达终点的一次性奖励（使用严格位姿条件，与终止逻辑一致）
         goal_reward_value = 0.0
-        if dist < self.success_radius:
+
+        success_pos = float(getattr(self.cfg.termination, "success_pos"))
+        success_yaw = float(getattr(self.cfg.termination, "success_yaw"))
+        success_lin_vel_th = float(getattr(self.cfg.termination, "success_lin_vel_th"))
+        success_ang_vel_th = float(getattr(self.cfg.termination, "success_ang_vel_th"))
+
+        pos_ok = dist < success_pos
+        yaw_ok = (
+            self._curr_yaw_err_to_target is not None
+            and abs(self._curr_yaw_err_to_target) < success_yaw
+        )
+        vel_ok = (
+            self._curr_vx is not None
+            and self._curr_wz is not None
+            and abs(self._curr_vx) < success_lin_vel_th
+            and abs(self._curr_wz) < success_ang_vel_th
+        )
+
+        if pos_ok and yaw_ok and vel_ok:
             goal_reward = float(getattr(self.cfg.reward, "goal_reward"))
             goal_reward_value = goal_reward
             reward += goal_reward_value
         reward_parts["goal_reward"] = goal_reward_value
+
+        # 近距离位姿奖励：在一定半径内，根据 yaw 误差给予指数形式惩罚
+        pose_reward_value = 0.0
+        pose_gate_radius = float(getattr(self.cfg.reward, "pose_gate_radius"))
+        yaw_reward_scale = float(getattr(self.cfg.reward, "yaw_reward_scale"))
+
+
+        if (
+            pose_gate_radius > 0.0
+            and yaw_reward_scale != 0.0
+            and dist < pose_gate_radius
+            and self._curr_yaw_err_to_target is not None
+        ):
+            yaw_err = self._curr_yaw_err_to_target
+            # 指数形式惩罚：误差越大惩罚越大，误差为 0 时为 0
+            pose_reward_value = yaw_reward_scale * (np.exp(abs(yaw_err)) - 1.0)
+            reward += pose_reward_value
+        reward_parts["pose"] = pose_reward_value
 
         # 每步时间成本（负奖励，鼓励尽快到达目标）
         step_cost = float(getattr(self.cfg.reward, "step_cost"))
@@ -281,8 +343,31 @@ class Turtlebot3Spec(RobotEnvSpec):
         if min_height is not None and self._current_height < float(min_height):
             return True
 
-        # 到达目标点终止
-        if self._prev_dist is not None and self._prev_dist < self.success_radius:
+        # 严格位姿终止条件：位置 + 朝向 + 速度，并要求连续满足若干步
+        success_pos = float(getattr(self.cfg.termination, "success_pos"))
+        success_yaw = float(getattr(self.cfg.termination, "success_yaw"))
+        success_lin_vel_th = float(getattr(self.cfg.termination, "success_lin_vel_th"))
+        success_ang_vel_th = float(getattr(self.cfg.termination, "success_ang_vel_th"))
+        success_stay_steps = int(getattr(self.cfg.termination, "success_stay_steps"))
+
+        pos_ok = self._curr_dist is not None and self._curr_dist < success_pos
+        yaw_ok = (
+            self._curr_yaw_err_to_target is not None
+            and abs(self._curr_yaw_err_to_target) < success_yaw
+        )
+        vel_ok = (
+            self._curr_vx is not None
+            and self._curr_wz is not None
+            and abs(self._curr_vx) < success_lin_vel_th
+            and abs(self._curr_wz) < success_ang_vel_th
+        )
+
+        if pos_ok and yaw_ok and vel_ok:
+            self._success_counter += 1
+        else:
+            self._success_counter = 0
+
+        if self._success_counter >= success_stay_steps:
             return True
 
         return False
@@ -292,4 +377,3 @@ class Turtlebot3Spec(RobotEnvSpec):
         twist.linear.x = float(np.clip(action[0], self.action_low[0], self.action_high[0]))
         twist.angular.z = float(np.clip(action[1], self.action_low[1], self.action_high[1]))
         return twist
-

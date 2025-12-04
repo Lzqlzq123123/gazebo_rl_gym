@@ -134,9 +134,7 @@ class GazeboSingleRobotEnv:
     # ------------------------------------------------------------------
     def reset(self) -> np.ndarray:
         """Reset Gazebo world and the robot, then return the initial observation."""
-        self._pause_physics(force=True)
-
-        # 调用 Gazebo reset 服务
+        # 调用 Gazebo reset 服务（注意：reset_world 会自动暂停物理引擎）
         rospy.wait_for_service("/gazebo/reset_world")
         try:
             self.reset_world()
@@ -145,7 +143,11 @@ class GazeboSingleRobotEnv:
             rospy.wait_for_service("/gazebo/reset_simulation")
             self.reset_simulation()
 
+        # reset 后物理引擎被暂停，标记状态
+        self._physics_paused = True
+
         # 重置内部时间与缓存
+        prev_sim_time = self.sim_time
         self.sim_time = None
         if self._clock_event is not None:
             self._clock_event.clear()
@@ -156,6 +158,21 @@ class GazeboSingleRobotEnv:
 
         # 清空 sensor 缓存，重置 spec 状态
         self._clear_sensor_buffers()
+
+        # 关键修复：立即 unpause 让时钟开始运行
+        self._unpause_physics(force=True)
+        
+        # 等待时钟开始运行（从 reset 后的状态恢复）
+        deadline = time.time() + 2.0
+        while time.time() < deadline:
+            if self.sim_time is not None and (prev_sim_time is None or self.sim_time != prev_sim_time):
+                break
+            time.sleep(0.01)
+        
+        if self.sim_time is None:
+            rospy.logwarn("Clock not advancing after reset, forcing unpause again...")
+            self._unpause_physics(force=True)
+            time.sleep(0.5)
 
         # 推动仿真，直到收到新的传感器数据
         self._advance_simulation(

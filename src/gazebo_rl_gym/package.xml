@@ -18,7 +18,10 @@
   <depend>joint_state_controller</depend>
   <depend>tf</depend>
   <depend>xacro</depend>
+  <depend>robot_state_publisher</depend>
+  <depend>joint_state_publisher</depend>
 
+  <exec_depend>gazebo_plugins</exec_depend>
   <exec_depend>python3-torch</exec_depend>
   <exec_depend>python3-numpy</exec_depend>
   <exec_depend>python3-gym</exec_depend>

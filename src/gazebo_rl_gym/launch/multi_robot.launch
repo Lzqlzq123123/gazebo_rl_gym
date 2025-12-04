@@ -2,9 +2,9 @@
     <arg name="additional_model_path" default="$(find gazebo_rl_gym)/models"/>
     <env name="GAZEBO_MODEL_PATH" value="$(arg additional_model_path):$(optenv GAZEBO_MODEL_PATH)"/>    
     <!-- Gazebo world -->
-    <arg name="world_file" default="$(find gazebo_rl_gym)/worlds/empty.world"/>
+    <arg name="world_file" default="$(find gazebo_rl_gym)/worlds/.world"/>
     <arg name="paused" default="false"/>
-    <arg name="gui" default="false"/>
+    <arg name="gui" default="true"/>
     <arg name="headless" default="false"/>
     <arg name="debug" default="false"/>
 
@@ -18,7 +18,7 @@
     </include>
 
     <!-- Robot Spawner -->
-    <arg name="config_file" default="$(find gazebo_rl_gym)/config/envs/warehouse.yaml"/>
+    <arg name="config_file" default="$(find gazebo_rl_gym)/config/envs/forklift_warehouse.yaml"/>
     <arg name="controllers_file" default="$(find gazebo_rl_gym)/config/controllers.yaml"/>
 
     <node name="robot_spawner" pkg="gazebo_rl_gym" type="spawn_robots.py" output="screen">

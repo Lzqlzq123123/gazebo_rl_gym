@@ -1,0 +1,30 @@
+<launch>
+    <!--
+      Launch file to start Gazebo with the warehouse world.
+      Usage examples:
+        roslaunch gazebo_rl_gym warehouse_world.launch
+        roslaunch gazebo_rl_gym warehouse_world.launch gui:=false headless:=true paused:=true
+    -->
+
+    <!-- add project's model path so gazebo can find our models -->
+    <arg name="additional_model_path" default="$(find gazebo_rl_gym)/models"/>
+    <env name="GAZEBO_MODEL_PATH" value="$(arg additional_model_path):$(optenv GAZEBO_MODEL_PATH)"/>
+
+    <!-- Gazebo world settings -->
+    <arg name="world_file" default="/data/lzq/gazebo_rl_gym_ws/src/gazebo_rl_gym/worlds/warehouse.world"/>
+    <arg name="paused" default="false"/>
+    <arg name="gui" default="true"/>
+    <arg name="headless" default="false"/>
+    <arg name="debug" default="false"/>
+    
+    <!-- Load empty_world.launch from gazebo_ros and pass a custom world -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(arg world_file)"/>
+        <arg name="paused" value="$(arg paused)"/>
+        <arg name="use_sim_time" value="true"/>
+        <arg name="gui" value="$(arg gui)"/>
+        <arg name="headless" value="$(arg headless)"/>
+        <arg name="debug" value="$(arg debug)"/>
+    </include>
+
+</launch>

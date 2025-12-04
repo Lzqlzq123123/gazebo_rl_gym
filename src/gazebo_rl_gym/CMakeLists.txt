@@ -9,7 +9,7 @@ catkin_python_setup()
 
 catkin_package()
 
-install(DIRECTORY launch config urdf
+install(DIRECTORY launch config urdf meshes
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 

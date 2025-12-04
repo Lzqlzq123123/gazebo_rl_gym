@@ -1,4 +1,5 @@
 from __future__ import annotations
+import re
 
 """Entry-point script for training a single-robot Gazebo env with rsl_rl PPO.
 
@@ -34,8 +35,8 @@ def main() -> None:
     parser.add_argument(
         "--train-cfg",
         type=str,
-        default="src/gazebo_rl_gym/config/train/warehouse_ppo_turtlebot3.yaml",
-        help="Path to the training configuration YAML.",
+        required=True,
+        help="Path to the training configuration YAML (default: src/gazebo_rl_gym/config/train/warehouse_ppo_turtlebot3.yaml).",
     )
     parser.add_argument("--device", default=("cuda" if torch.cuda.is_available() else "cpu"))
     parser.add_argument("--model", type=str, default=None, help="Optional path to a saved model to load before training")

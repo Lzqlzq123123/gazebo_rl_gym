@@ -221,7 +221,6 @@ robots:
         pose: {x: 0.0, y: 0.0, z: 0.1, yaw: 0.0}
         task:
             target_pos: [2.0, 1.0]       # 目标点 (x, y)
-            success_radius: 0.3          # 终点判定半径
         reward:
             distance_scale: 0.0          # 如不再用原始位移奖励，可设 0
             smoothness_scale: 0.01       # 动作平滑惩罚
@@ -253,7 +252,6 @@ class Turtlebot3Spec(RobotEnvSpec):
                 target = task_cfg.get("target_pos", [1.0, 0.0])
                 self.target_x = float(target[0])
                 self.target_y = float(target[1])
-                self.success_radius = float(task_cfg.get("success_radius", 0.3))
 
                 self._prev_dist: float | None = None
 ```
@@ -328,10 +326,6 @@ class Turtlebot3Spec(RobotEnvSpec):
                         reward += dist_scale * delta
                 self._prev_dist = dist
 
-                # --- 到终点奖励（一次性） ---
-                if dist < self.success_radius:
-                        goal_reward = getattr(self.cfg.reward, "goal_reward", 20.0)
-                        reward += goal_reward
 
                 # --- 每步时间成本 ---
                 step_cost = getattr(self.cfg.reward, "step_cost", 0.0)
