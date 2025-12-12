@@ -24,10 +24,10 @@ robots:
   - name: forklift2
     preset: forklift
     pose:
-      x: -3.0
-      y: -1.0
+      x: 0.0
+      y: 0.0
       z: 0.0
-      yaw: 0.0
+      yaw: -1.57
     task:
       target_pos: [1, 0, 0.0]     # 目标点世界坐标
 

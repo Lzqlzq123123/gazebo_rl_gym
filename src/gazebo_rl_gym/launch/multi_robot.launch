@@ -2,7 +2,7 @@
     <arg name="additional_model_path" default="$(find gazebo_rl_gym)/models"/>
     <env name="GAZEBO_MODEL_PATH" value="$(arg additional_model_path):$(optenv GAZEBO_MODEL_PATH)"/>    
     <!-- Gazebo world -->
-    <arg name="world_file" default="$(find gazebo_rl_gym)/worlds/.world"/>
+    <arg name="world_file" default="$(find gazebo_rl_gym)/worlds/forklift_warehouse.world"/>
     <arg name="paused" default="false"/>
     <arg name="gui" default="true"/>
     <arg name="headless" default="false"/>

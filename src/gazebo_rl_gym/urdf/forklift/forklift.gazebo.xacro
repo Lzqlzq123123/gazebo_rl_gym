@@ -136,8 +136,8 @@
       <camera>
         <horizontal_fov>1.3439</horizontal_fov>
         <image>
-          <width>780</width>
-          <height>640</height>
+          <width>96</width>
+          <height>96</height>
           <format>R8G8B8</format>
         </image>
         <depth_camera></depth_camera>
